@@ -5,12 +5,20 @@ import com.example.sample1.domain.Todo;
 import com.example.sample1.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,12 +41,25 @@ public class TodoController {
     }
 
     @PostMapping("/add")
-    public String add (Todo todo, RedirectAttributes rttr) throws SQLException {
+    public String add (
+            Todo todo,
+            MultipartFile[] files,
+            RedirectAttributes rttr) throws Exception {
         // 새 할 일 추가 하고
-        boolean result = service.insert(todo);
+        boolean result = service.insert(todo,files);
         // 결과 model에 넣고
 
         // home으로 redirect
+
         return "redirect:/";
+    }
+    @GetMapping("files")
+    public void listFiles(
+       @RequestParam("id") Integer todoId,
+       Model model
+    ){
+        List<String> filePath = service.listFiles(todoId);
+        model.addAttribute("filePathList",filePath);
+
     }
 }
